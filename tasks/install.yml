@@ -1,15 +1,17 @@
-# tasks file
+# tasks file for percona-client
 ---
 - name: install | dependencies
   apt:
-    name: "{{ percona_client_dependencies }}"
-    state: "{{ apt_install_state | default('latest') }}"
+    name: "{{ item }}"
+    state: "{{ apt_install_state | default('present') }}"
+  with_items: "{{ percona_client_dependencies }}"
   tags:
     - percona-client-install-dependencies
 
 - name: install | additional
   apt:
-    name: "{{ percona_client_install }}"
-    state: "{{ apt_install_state | default('latest') }}"
+    name: "{{ item }}"
+    state: "{{ apt_install_state | default('present') }}"
+  with_items: "{{ percona_client_install }}"
   tags:
     - percona-client-install-additional

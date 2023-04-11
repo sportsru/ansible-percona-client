@@ -1,4 +1,4 @@
-# test file
+# test file for percona-client
 ---
 - hosts: localhost
   connection: local

@@ -1,6 +1,6 @@
-# defaults file
+# defaults file for percona-client
 ---
-percona_client_version: 5.7
+percona_client_version: "8.0.29-21-1"
 percona_client_install: []
 percona_client_my_cnf_files: []
 percona_client_ssl_map: {}
