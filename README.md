@@ -14,6 +14,7 @@ None
 * `percona_client_repository_url`: [default: `http://repo.percona.com`]: Base URL of the Percona repositories (e.g. a local mirror)
 * `percona_client_repository_names_map`: [default: see `defaults/main.yml`]: Repositories (`<url>/<name>/apt`) per major version; adding a key adds a supported major version. Keep in line with `percona_server_repository_names_map` of the percona-server role
 * `percona_client_repository_remove_others`: [default: `true`]: Whether or not to remove repositories of the other major versions (e.g. `ps-80` when installing `8.4`)
+* `percona_client_hold`: [default: `true`]: Hold `percona-server-client` and `percona-server-common`, so that `apt upgrade` does not change them; they are unheld automatically when their version changes. On percona-server hosts keep `percona_client_version` equal to `percona_server_version`
 * `percona_client_install`: [default: `[]`]: Additional packages to install
 
 * `percona_client_my_cnf_files`: [default: `[]`]: `.my.cnf` files to configure

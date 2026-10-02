@@ -17,3 +17,13 @@ percona_client_repository_names_absent: "{{ percona_client_repository_names_map.
 
 percona_client_dependencies:
   - "percona-server-client={{ percona_client_version_deb }}"
+  - "percona-server-common={{ percona_client_version_deb }}"
+
+# Packages installed with an exact version (pkg=version) are held: {name: version}
+percona_client_hold_versions: >-
+  {{
+    dict(
+      percona_client_dependencies | select('search', '=') | map('regex_replace', '=.*$', '') | list
+      | zip(percona_client_dependencies | select('search', '=') | map('regex_replace', '^[^=]*=', '') | list)
+    )
+  }}

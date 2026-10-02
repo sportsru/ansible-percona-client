@@ -1,3 +1,7 @@
+# Prefer the Percona repositories over the distribution ones.
+# Must stay below 1001: the apt module pins a requested version (pkg=version) with 1001,
+# with an equal priority apt takes the newest version and the requested one is reported
+# as "no available installation candidate".
 Package: *
 Pin: release o=Percona Development Team
-Pin-Priority: 1001
+Pin-Priority: 1000
