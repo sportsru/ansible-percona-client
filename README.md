@@ -10,7 +10,10 @@ None
 
 #### Variables
 
-* `percona_client_version`: [default: `5.6`]: Version to install (e.g. `5.6`)
+* `percona_client_version`: [default: `8.0.29-21-1`]: Full package version to install, without the distribution suffix (e.g. `8.0.39-30-1`, `8.4.11-11-1`). Its major version (`8.0`, `8.4`) selects the repository
+* `percona_client_repository_url`: [default: `http://repo.percona.com`]: Base URL of the Percona repositories (e.g. a local mirror)
+* `percona_client_repository_names_map`: [default: see `defaults/main.yml`]: Repositories (`<url>/<name>/apt`) per major version; adding a key adds a supported major version. Keep in line with `percona_server_repository_names_map` of the percona-server role
+* `percona_client_repository_remove_others`: [default: `true`]: Whether or not to remove repositories of the other major versions (e.g. `ps-80` when installing `8.4`)
 * `percona_client_install`: [default: `[]`]: Additional packages to install
 
 * `percona_client_my_cnf_files`: [default: `[]`]: `.my.cnf` files to configure

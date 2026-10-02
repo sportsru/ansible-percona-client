@@ -21,12 +21,26 @@
   tags:
     - percona-client-repository-public-key
 
+- name: repository | remove (other major versions)
+  apt_repository:
+    repo: "{{ item.1 }} {{ percona_client_repository_url }}/{{ item.0 }}/apt {{ ansible_lsb.codename }} main"
+    state: absent
+    update_cache: false
+  with_nested:
+    - "{{ percona_client_repository_names_absent }}"
+    - "{{ percona_client_repository_types }}"
+  when: percona_client_repository_remove_others | bool
+  tags:
+    - percona-client-repository-remove
+
 - name: repository | add
   apt_repository:
-    repo: "{{ item.type }} {{ item.url }} {{ item.component }}"
+    repo: "{{ item.1 }} {{ percona_client_repository_url }}/{{ item.0 }}/apt {{ ansible_lsb.codename }} main"
     state: present
     update_cache: true
-  with_items: "{{ percona_client_repositories }}"
+  with_nested:
+    - "{{ percona_client_repository_names }}"
+    - "{{ percona_client_repository_types }}"
   tags:
     - percona-client-repository-add
 

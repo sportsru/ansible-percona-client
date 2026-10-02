@@ -2,7 +2,7 @@
 ---
 - name: version support | check
   fail:
-    msg: "Percona client version {{ percona_client_version }} is not supported"
-  when: percona_client_version | string not in percona_client_versions_supported
+    msg: "Percona client version {{ percona_client_version }} is not supported (supported major versions: {{ percona_client_versions_supported | join(', ') }})"
+  when: percona_client_version_major not in percona_client_versions_supported
   tags:
     - percona-client-version-support-check

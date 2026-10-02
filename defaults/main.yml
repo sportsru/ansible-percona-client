@@ -1,6 +1,17 @@
 # defaults file for percona-client
 ---
 percona_client_version: "8.0.29-21-1"
+
+# Repositories (http://repo.percona.com/<name>/apt) per major version of percona_client_version,
+# keep in line with percona_server_repository_names_map of the percona-server role
+percona_client_repository_url: http://repo.percona.com
+percona_client_repository_names_map:
+  '8.0':
+    - ps-80
+  '8.4':
+    - ps-84-lts
+percona_client_repository_remove_others: true
+
 percona_client_install: []
 percona_client_my_cnf_files: []
 percona_client_ssl_map: {}
