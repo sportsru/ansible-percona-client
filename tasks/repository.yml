@@ -1,5 +1,51 @@
 # tasks file for percona-client
 ---
+# The managed repositories are defined as "deb [signed-by=<keyring>] <url>/<name>/apt <codename> main",
+# the same lines percona-release and the percona-server role write. Other lines of the same repositories
+# (e.g. without signed-by, written by older versions of this role) conflict with them ("Conflicting values
+# set for option Signed-By") and break apt as a whole, so they are removed first, with file operations only
+- name: repository | find definitions of the Percona repositories
+  find:
+    paths:
+      - /etc/apt
+      - /etc/apt/sources.list.d
+    patterns:
+      - sources.list
+      - '*.list'
+    contains: '.*repo\.percona\.com/.*'
+  register: _percona_client_repository_files
+  tags:
+    - percona-client-repository-cleanup
+
+- name: repository | remove other definitions of the managed repositories
+  lineinfile:
+    path: "{{ item.path }}"
+    regexp: >-
+      ^\s*deb(-src)?\s+(?!\[signed-by={{ percona_client_repository_keyring | regex_escape }}\]
+      {{- ' ' ~ percona_client_repository_url | regex_escape }}/({{ _percona_client_repository_names_re }})/apt
+      {{- ' ' ~ ansible_lsb.codename }} main\s*$).*repo\.percona\.com/({{ _percona_client_repository_names_re }})/apt[/\s]
+    state: absent
+  with_items: "{{ _percona_client_repository_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  tags:
+    - percona-client-repository-cleanup
+
+- name: repository | remove (other major versions)
+  lineinfile:
+    path: "{{ item.path }}"
+    regexp: '^\s*deb(-src)?\s.*repo\.percona\.com/({{ _percona_client_repository_names_absent_re }})/apt[/\s]'
+    state: absent
+  with_items: "{{ _percona_client_repository_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when:
+    - percona_client_repository_remove_others | bool
+    - percona_client_repository_names_absent | length > 0
+  tags:
+    - percona-client-repository-cleanup
+    - percona-client-repository-remove
+
 - name: repository | install | dependencies
   apt:
     name: "{{ item }}"
@@ -15,27 +61,16 @@
 
 - name: repository | add public key
   apt_key:
-    id: 9334A25F8507EFA5
-    keyserver: keyserver.ubuntu.com
+    id: "{{ percona_client_repository_key_id }}"
+    keyserver: "{{ apt_key_keyserver | default('keyserver.ubuntu.com') }}"
+    keyring: "{{ percona_client_repository_keyring }}"
     state: present
   tags:
     - percona-client-repository-public-key
 
-- name: repository | remove (other major versions)
-  apt_repository:
-    repo: "{{ item.1 }} {{ percona_client_repository_url }}/{{ item.0 }}/apt {{ ansible_lsb.codename }} main"
-    state: absent
-    update_cache: false
-  with_nested:
-    - "{{ percona_client_repository_names_absent }}"
-    - "{{ percona_client_repository_types }}"
-  when: percona_client_repository_remove_others | bool
-  tags:
-    - percona-client-repository-remove
-
 - name: repository | add
   apt_repository:
-    repo: "{{ item.1 }} {{ percona_client_repository_url }}/{{ item.0 }}/apt {{ ansible_lsb.codename }} main"
+    repo: "{{ item.1 }} [signed-by={{ percona_client_repository_keyring }}] {{ percona_client_repository_url }}/{{ item.0 }}/apt {{ ansible_lsb.codename }} main"
     state: present
     update_cache: true
   with_nested:

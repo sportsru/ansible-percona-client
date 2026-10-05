@@ -16,6 +16,9 @@ percona_client_repository_names_map:
   '8.4':
     - ps-84-lts
 percona_client_repository_remove_others: true
+# Repositories are signed-by this keyring (the same as percona-release uses), the key is added to it
+percona_client_repository_keyring: /usr/share/keyrings/percona-keyring.gpg
+percona_client_repository_key_id: 9334A25F8507EFA5
 
 percona_client_install: []
 percona_client_my_cnf_files: []
