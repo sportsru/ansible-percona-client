@@ -1,6 +1,25 @@
 # defaults file for percona-client
 ---
 percona_client_version: "8.0.29-21-1"
+
+# Hold percona-server-client and percona-server-common, so that `apt upgrade` does not change them;
+# they are unheld automatically when their version changes. Set to false to unhold.
+# On percona-server hosts keep percona_client_version equal to percona_server_version.
+percona_client_hold: true
+
+# Repositories (http://repo.percona.com/<name>/apt) per major version of percona_client_version,
+# keep in line with percona_server_repository_names_map of the percona-server role
+percona_client_repository_url: http://repo.percona.com
+percona_client_repository_names_map:
+  '8.0':
+    - ps-80
+  '8.4':
+    - ps-84-lts
+percona_client_repository_remove_others: true
+# Repositories are signed-by this keyring (the same as percona-release uses), the key is added to it
+percona_client_repository_keyring: /usr/share/keyrings/percona-keyring.gpg
+percona_client_repository_key_id: 9334A25F8507EFA5
+
 percona_client_install: []
 percona_client_my_cnf_files: []
 percona_client_ssl_map: {}

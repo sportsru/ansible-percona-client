@@ -1,14 +1,31 @@
 # vars file for percona-client
 ---
-percona_client_repositories:
-  - type: deb
-    url: "http://repo.percona.com/ps-80/apt {{ ansible_lsb.codename }}"
-    component: main
-  - type: deb-src
-    url: "http://repo.percona.com/ps-80/apt {{ ansible_lsb.codename }}"
-    component: main
-
 percona_client_version_deb: "{{ percona_client_version }}.{{ ansible_distribution_release }}"
+
+# Major version (e.g. 8.0, 8.4) derived from the full package version (e.g. 8.4.6-6-1)
+percona_client_version_major: "{{ (percona_client_version | string).split('.')[0:2] | join('.') }}"
+
+percona_client_versions_supported: "{{ percona_client_repository_names_map.keys() | list }}"
+
+percona_client_repository_types:
+  - deb
+  - deb-src
+
+percona_client_repository_names: "{{ percona_client_repository_names_map[percona_client_version_major] }}"
+# Repositories of the other major versions (e.g. ps-80 after switching to 8.4)
+percona_client_repository_names_absent: "{{ percona_client_repository_names_map.values() | flatten | unique | difference(percona_client_repository_names) }}"
+_percona_client_repository_names_re: "{{ percona_client_repository_names | map('regex_escape') | join('|') }}"
+_percona_client_repository_names_absent_re: "{{ percona_client_repository_names_absent | map('regex_escape') | join('|') }}"
 
 percona_client_dependencies:
   - "percona-server-client={{ percona_client_version_deb }}"
+  - "percona-server-common={{ percona_client_version_deb }}"
+
+# Packages installed with an exact version (pkg=version) are held: {name: version}
+percona_client_hold_versions: >-
+  {{
+    dict(
+      percona_client_dependencies | select('search', '=') | map('regex_replace', '=.*$', '') | list
+      | zip(percona_client_dependencies | select('search', '=') | map('regex_replace', '^[^=]*=', '') | list)
+    )
+  }}

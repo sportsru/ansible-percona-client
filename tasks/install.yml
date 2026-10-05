@@ -1,12 +1,74 @@
 # tasks file for percona-client
 ---
+- name: install | check installed packages
+  command: >
+    dpkg-query -W -f='${Package}|${Status}|${Version}\n'
+    {{ percona_client_hold_versions.keys() | list | join(' ') }} percona-server-server
+  register: _percona_client_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags:
+    - percona-client-install-hold
+
+# percona-server-server depends on percona-server-client/common of exactly its version,
+# the client can only be changed together with the server (by the percona-server role)
+- name: install | check percona-server-server version
+  fail:
+    msg: >-
+      percona-server-server {{ _server.split('|')[2] }} is installed, the client ({{ percona_client_version_deb }})
+      can not be changed without it: change percona_server_version and run the percona-server role first,
+      keep percona_client_version equal to percona_server_version
+  vars:
+    _server: "{{ _percona_client_installed.stdout_lines | select('match', '^percona-server-server[|]') | first | default('||') }}"
+  when:
+    - _server.split('|')[1].endswith(' installed')
+    - _server.split('|')[2] != percona_client_version_deb
+  tags:
+    - percona-client-install-hold
+
+# apt can not change held packages, so unhold the ones whose version changes
+- name: install | unhold packages before changing them
+  dpkg_selections:
+    name: "{{ item.split('|')[0] }}"
+    selection: install
+  with_items: "{{ _percona_client_installed.stdout_lines }}"
+  when:
+    - item.split('|')[0] in percona_client_hold_versions
+    - item.split('|')[1].startswith('hold ')
+    - item.split('|')[1].endswith(' installed')
+    - percona_client_hold_versions[item.split('|')[0]] | default('') != item.split('|')[2]
+  tags:
+    - percona-client-install-hold
+
+# In one apt call: percona-server-client depends on percona-server-common of exactly the same version
 - name: install | dependencies
   apt:
-    name: "{{ item }}"
+    name: "{{ percona_client_dependencies }}"
     state: "{{ apt_install_state | default('present') }}"
-  with_items: "{{ percona_client_dependencies }}"
   tags:
     - percona-client-install-dependencies
+
+- name: install | check installed packages (after install)
+  command: >
+    dpkg-query -W -f='${Package}|${Status}\n'
+    {{ percona_client_hold_versions.keys() | list | join(' ') }}
+  register: _percona_client_installed_after
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags:
+    - percona-client-install-hold
+
+# Only installed packages can be held (in check mode the packages to be installed are not there yet)
+- name: install | hold packages
+  dpkg_selections:
+    name: "{{ item.split('|')[0] }}"
+    selection: "{{ 'hold' if percona_client_hold | bool else 'install' }}"
+  with_items: "{{ _percona_client_installed_after.stdout_lines }}"
+  when: item.split('|')[1].endswith(' installed')
+  tags:
+    - percona-client-install-hold
 
 - name: install | additional
   apt:

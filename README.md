@@ -10,7 +10,12 @@ None
 
 #### Variables
 
-* `percona_client_version`: [default: `5.6`]: Version to install (e.g. `5.6`)
+* `percona_client_version`: [default: `8.0.29-21-1`]: Full package version to install, without the distribution suffix (e.g. `8.0.39-30-1`, `8.4.11-11-1`). Its major version (`8.0`, `8.4`) selects the repository
+* `percona_client_repository_url`: [default: `http://repo.percona.com`]: Base URL of the Percona repositories (e.g. a local mirror)
+* `percona_client_repository_names_map`: [default: see `defaults/main.yml`]: Repositories (`<url>/<name>/apt`) per major version; adding a key adds a supported major version. Keep in line with `percona_server_repository_names_map` of the percona-server role
+* `percona_client_repository_remove_others`: [default: `true`]: Whether or not to remove repositories of the other major versions (e.g. `ps-80` when installing `8.4`)
+* `percona_client_repository_keyring` / `percona_client_repository_key_id`: [default: see `defaults/main.yml`]: Repositories are added as `deb [signed-by=<keyring>] <url>/<name>/apt <codename> main` (the same lines percona-release and the percona-server role write); other lines of the same repositories are removed first
+* `percona_client_hold`: [default: `true`]: Hold `percona-server-client` and `percona-server-common`, so that `apt upgrade` does not change them; they are unheld automatically when their version changes. On percona-server hosts keep `percona_client_version` equal to `percona_server_version`
 * `percona_client_install`: [default: `[]`]: Additional packages to install
 
 * `percona_client_my_cnf_files`: [default: `[]`]: `.my.cnf` files to configure
